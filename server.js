@@ -28,25 +28,36 @@ app.use(express.static("public"));
 mongoose.connect("mongodb://localhost/NewsToday");
 var db = mongoose.connection;
 
+// Show any mongoose errors
+db.on("error", function(error) {
+  console.log("Mongoose Error: ", error);
+});
+
+// Once logged in to the db through mongoose, log a success message
+db.once("open", function() {
+  console.log("Mongoose connection successful.");
+});
+
 
 // Routes
 // ======
 
 // A GET request to scrape the theonion website
-app.get("/articles", function(req, res) {
+app.get("/scrape", function(req, res) {
   // First, we grab the body of the html with request
-  request("http://http://www.theonion.com/section/politics/", function(error, response, html) {
+  request("http://www.theonion.com/section/politics/", function(error, response, html) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(html);
-    // Now, we grab every h2 within a header tag, and do the following:
-    $("header h2").each(function(i, element) {
+    // Now, we grab every div within a div within an article tag, and do the following:
+    $("article div div").each(function(i, element) {
 
       // Save an empty result object
       var result = {};
 
-      // Add the text and href of every link, and save them as properties of the result object
-      result.title = $(this).children("a").attr("title");
-      result.link = $(this).children("a").attr("href");
+      // Add the text, description and href of every link, and save them as properties of the result object
+      result.title = $(this).children("header").children("h2").children("a").attr("title");
+      result.link = $(this).children("header").children("h2").children("a").attr("href");
+      result.description = $(this).children("div").text();
 
       // Using our Article model, create a new entry
       // This effectively passes the result object to the entry (and the title and link)
@@ -61,11 +72,27 @@ app.get("/articles", function(req, res) {
         // Or log the doc
         else {
           console.log(doc);
+          console.log("Scrape Complete")
         }
       });
 
     });
   });
+  // Grab every doc in the Articles array
+  Article.find({}, function(error, doc) {
+    // Log any errors
+    if (error) {
+      console.log(error);
+    }
+    // Or redirect to the homepage
+    else {
+      res.redirect("/");
+    }
+  });
+});
+
+// This will get the articles we scraped from the mongoDB
+app.get("/articles", function(req, res) {
   // Grab every doc in the Articles array
   Article.find({}, function(error, doc) {
     // Log any errors
