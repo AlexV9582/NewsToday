@@ -12,6 +12,10 @@ var CommentSchema = new Schema({
     comment: {
       type: String,
       required: true
+    },
+    articleId: {
+      type: String,
+      required: true
     }
   });
   

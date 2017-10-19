@@ -49,17 +49,17 @@ app.get("/scrape", function(req, res) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(html);
     // Now, we grab every div within a div within an article tag, and do the following:
-    $("article div div").each(function(i, element) {
+    $("article").each(function(i, element) {
 
       // Save an empty result object
       var result = {};
 
       // Add the text, description and href of every link, and save them as properties of the result object
-      result.title = $(this).children("header").children("h2").children("a").attr("title");
-      result.link = $(this).children("header").children("h2").children("a").attr("href");
-      result.description = $(this).children("div").text();
+      result.title = $(this).children("header").children("h1").children("a").text();
+      result.link = $(this).children("header").children("h1").children("a").attr("href");
+      result.description = $(this).children("div").children("div").text();
 
-      // Using our Article model, create a new entry
+      // Using Article model, create a new entry
       // This effectively passes the result object to the entry (and the title and link)
       var entry = new Article(result);
 
@@ -105,7 +105,53 @@ app.get("/articles", function(req, res) {
     }
   });
 });
+
+app.get("/users", function(req, res) {
+  var info = new Users(res);
+    // Now, save that entry to the db
+    info.save(function(err, doc) {
+      // Log any errors
+      if (err) {
+        console.log(err);
+      }
+      // Or log the doc
+      else {
+        console.log(doc);
+        console.log("User Added to DB")
+      }
+    });
+})
+
+// This will get the users from the mongoDB
+app.get("/users", function(req, res) {
+  // Grab user info from the Users array
+  Users.find({ user: res.username, password: res.password }, function(error, user) {
+    if (error) {
+      console.log(error)
+    }
+    // Or send the user to the browser as a json object
+    else {
+      res.json(user);
+    }
+  })
+})
+
+// This will get the comments from the mongoDB
+app.get("/comments", function(req, res) {
+  // Grab user info from the Comments array
+  Comments.find({}, function(error, comments) {
+    if (error) {
+      console.log(error)
+    }
+    // Or send the comments to the browser as a json object
+    else {
+      res.json(comments);
+    }
+  })
+})
+
 // Listen on port 3000
 app.listen(3000, function() {
   console.log("App running on port 3000!");
 });
+
