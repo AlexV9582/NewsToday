@@ -55,15 +55,15 @@ $.getJSON("/articles", function(data) {
     }
   });
 
-$("#submit").on("click", function() {
+$("#articles").on("click", "#submit", function() {
     event.preventDefault();
     var userInfo = {
-        username: $("#inputEmail").val(),
+        user: $("#inputEmail").val(),
         password: $("#inputPassword").val()
     };
     console.log(userInfo);
     $.post("/users", userInfo, function(data) {
-        console.log("User info sent")
+        console.log(data)
     })
 
 

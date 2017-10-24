@@ -106,32 +106,50 @@ app.get("/articles", function(req, res) {
   });
 });
 
-app.get("/users", function(req, res) {
-  var info = new Users(res);
-    // Now, save that entry to the db
-    info.save(function(err, doc) {
-      // Log any errors
-      if (err) {
-        console.log(err);
-      }
-      // Or log the doc
-      else {
-        console.log(doc);
-        console.log("User Added to DB")
-      }
-    });
-})
+// app.post("/users", function(req, res) {
+//   var info = new Users(res);
+//     // Now, save that entry to the db
+//     info.save(function(err, doc) {
+//       // Log any errors
+//       if (err) {
+//         console.log(err);
+//       }
+//       // Or log the doc
+//       else {
+//         console.log(doc);
+//         console.log("User Added to DB")
+//       }
+//     });
+// })
 
 // This will get the users from the mongoDB
-app.get("/users", function(req, res) {
+app.post("/users", function(req, res) {
   // Grab user info from the Users array
-  Users.find({ user: res.username, password: res.password }, function(error, user) {
+  Users.find({ user: req.body.user, password: req.body.password }, function(error, user) {
     if (error) {
-      console.log(error)
+      console.log(error);
     }
     // Or send the user to the browser as a json object
     else {
-      res.json(user);
+      if (!user.length) { //when no match is found
+        var info = new Users(req.body);
+            // Now, save that entry to the db
+            info.save(function(err, doc) {
+              // Log any errors
+              if (err) {
+                console.log(err);
+              }
+              // Or log the doc
+              else {
+                
+                console.log("User Added to DB");
+                res.send("User not found, but added.")
+              }
+            });
+        
+      }else {
+        res.send("User was found")
+      }
     }
   })
 })
