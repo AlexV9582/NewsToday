@@ -2,8 +2,9 @@
 var express    = require("express");
 var bodyParser = require("body-parser");
 var mongoose   = require("mongoose");
+//var nodemon    = require("nodemon")
 // Requiring models
-var Note       = require("./models/comments.js");
+var Comments   = require("./models/comments.js");
 var Article    = require("./models/articles.js");
 var Users      = require("./models/users.js")
 // Scraping tools
@@ -106,21 +107,20 @@ app.get("/articles", function(req, res) {
   });
 });
 
-// app.post("/users", function(req, res) {
-//   var info = new Users(res);
-//     // Now, save that entry to the db
-//     info.save(function(err, doc) {
-//       // Log any errors
-//       if (err) {
-//         console.log(err);
-//       }
-//       // Or log the doc
-//       else {
-//         console.log(doc);
-//         console.log("User Added to DB")
-//       }
-//     });
-// })
+// This will get the comments from the mongoDB
+app.get("/comments", function(req, res) {
+  // Grab every doc in the Comments array
+  Comments.find({}, function(error, doc) {
+    // Log any errors
+    if (error) {
+      console.log(error);
+    }
+    // Or send the doc to the browser as a json object
+    else {
+      res.json(doc);
+    }
+  });
+});
 
 // This will get the users from the mongoDB
 app.post("/users", function(req, res) {
@@ -154,16 +154,18 @@ app.post("/users", function(req, res) {
   })
 })
 
-// This will get the comments from the mongoDB
-app.get("/comments", function(req, res) {
-  // Grab user info from the Comments array
-  Comments.find({}, function(error, comments) {
-    if (error) {
-      console.log(error)
+// This will save the comment to the mongoDB
+app.post("/comments", function(req, res) {
+  // Create new Comment and add data from req.body
+  var note = new Comments(req.body);
+  note.save(function(err, doc) {
+    if (err) {
+      console.log(err);
     }
     // Or send the comments to the browser as a json object
     else {
-      res.json(comments);
+      console.log("Comment saved to DB")
+      res.send("Comment added");
     }
   })
 })
